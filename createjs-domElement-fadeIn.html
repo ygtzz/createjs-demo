@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DOMElement fadeIn</title>
+</head>
+<body>
+    <div id="ins" style="width: 400px;height: 300px;border: dashed 2 #008b8b;text-align: center;visibility: hidden">
+        <h3 style="font-family:arial;">Game Instructions</h3>
+        <p><strong>Click</strong> on the <span style="color:red">RED</span> balloons as they fall from the sky.</p>
+        <a href="http://www.cnblogs.com/strick/" target="_blank">pwstrick</a>
+    </div>
+    <canvas id="cvs" width="800" height="800"></canvas>
+    <script src="./easeljs-0.8.2.min.js"></script>
+    <script src="./tweenjs-0.6.2.min.js"></script>
+    <script>
+        var MyText = function(opts){
+            this.canvas = document.getElementById('cvs');
+            this.stage = new createjs.Stage('cvs');
+            this.ticker = createjs.Ticker;
+            
+            this.fInit();
+            this.fRenderShape();
+        }
+        MyText.prototype = {
+            fInit:function(){
+                var self = this;
+                this.ticker.setFPS(60);
+                this.ticker.addEventListener('tick',function(e){
+                    self.stage.update();
+                });
+                //self.stage.enableMouseOver();                
+            },
+            fRenderShape:function(){
+                var de = new createjs.DOMElement('ins');
+                de.alpha = 0;
+                de.regX = 200;
+                de.x = this.stage.canvas.width/2;
+                de.y = 0;
+                this.stage.addChild(de);
+                //animation
+                createjs.Tween.get(de).wait(100).to({
+                    y:80,
+                    alpha:1
+                },2000,createjs.Ease.quadOut);
+            }
+        }
+        new MyText();
+    </script>
+</body>
+</html>

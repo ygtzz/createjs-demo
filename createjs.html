@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Createjs demo</title>
+    <script src="./easeljs-0.8.2.min.js"></script>
+    <script src="./tweenjs-0.6.2.min.js"></script>
+</head>
+<body>
+    <canvas id="cvs" width="1000" height="1000"></canvas>
+    <script>
+        var stage,loaderBar,loadInterval,LOADER_WIDTH = 400,percentLoaded = 0;
+        var offsetX,offsetY;
+        fInit();
+
+        function fInit(){
+            fInitStage();
+            fInitLoaderBar();
+            //fStartLoad();
+        }
+
+        function fInitStage(){
+            stage = new createjs.Stage(document.getElementById('cvs'));
+            createjs.Ticker.addEventListener('tick',fTick);
+            createjs.Ticker.setFPS(60);
+            //stage alpha
+            stage.enableMouseOver();
+            
+        }
+
+        function fTick(){
+            stage.update();
+        }
+
+        function fInitLoaderBar(){
+            loaderBar = new createjs.Shape();
+            loaderBar.graphics.ss(2).s('#000').r(0,0,LOADER_WIDTH,40).f('#00ff00').r(0,0,LOADER_WIDTH,40).ef();
+            loaderBar.x = loaderBar.y = 80;
+            stage.addEventListener('stagemousedown',function(e){
+                // offsetX = stage.mouseX - loaderBar.x;
+                // offsetY = stage.mouseY - loaderBar.y;
+                offsetX = e.stageX - loaderBar.x;
+                offsetY = e.stageY - loaderBar.y;
+                stage.addEventListener('stagemousemove',function(e){
+                    // loaderBar.x = stage.mouseX - offsetX;
+                    // loaderBar.y = stage.mouseY - offsetY;
+                    loaderBar.x = e.stageX - offsetX;
+                    loaderBar.y = e.stageY - offsetY;
+                });
+                stage.addEventListener('stagemouseup',function(e){
+                    e.target.removeAllEventListeners('stagemousemove');
+                    e.target.removeAllEventListeners('stagemouseup');
+                });
+            });
+            loaderBar.addEventListener('mouseover',function(e){
+                loaderBar.alpha = 0.1;
+                stage.update();
+            });
+            loaderBar.addEventListener('mouseout',function(e){
+                loaderBar.alpha = 1;
+                stage.update();
+            });
+            stage.addChild(loaderBar);
+        }
+
+        function fStartLoad(){
+            loadInterval = setInterval(function(){
+                percentLoaded += .005;
+                loaderBar.graphics.f('green').r(0,0,LOADER_WIDTH * percentLoaded,40).ef();//.ss(2).s('#000').r(0,0,LOADER_WIDTH,40).es();
+                if(percentLoaded >= 1){
+                    clearInterval(loadInterval);
+                }
+            },50);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>createjs drag</title>
+</head>
+<body>
+    <canvas id="cvs" width="800" height="800"></canvas>
+    <script src="./easeljs-0.8.2.min.js"></script>
+    <script src="./tweenjs-0.6.2.min.js"></script>
+    <script>
+        var DragBox = function(opts){
+            this.canvas = document.getElementById('cvs');
+            this.stage = new createjs.Stage('cvs');
+            this.ticker = createjs.Ticker;
+            this.score = 0;
+            this.aSlot = [];
+            this.aShape = [];
+            this.offsetX = 0;
+            this.offsetY = 0;
+            
+            this.fInit();
+            this.fRenderShape();
+        }
+        DragBox.prototype = {
+            fInit:function(){
+                var self = this;
+                this.ticker.setFPS(60);
+                this.ticker.addEventListener('tick',function(e){
+                    self.stage.update();
+                });
+                //self.stage.enableMouseOver();                
+            },
+            fRenderShape:function(){
+                var self = this;
+                var aColor = ['blue','red','green','yellow'];
+                aColor.forEach(function(item,index){
+                    var slot = new createjs.Shape();
+                    slot.graphics.ss(2).s(item).f('#fff').r(0,0,100,100);
+                    slot.regX = slot.regY = 50;
+                    slot.x = 200 * index + 100;
+                    slot.y = 100;
+                    slot.key = index;
+                    self.aSlot.push(slot);
+                    self.stage.addChild(slot);
+                    //fill box
+                    var shape = new createjs.Shape();
+                    shape.graphics.f(item).r(0,0,100,100);
+                    shape.regX = shape.regY = 50;
+                    shape.key = index;
+                    shape.addEventListener('mousedown',self.fBindEvent.bind(self));
+                    self.aShape.push(shape);
+                });
+                self.aShape.sort(function(){
+                    return Math.random() - 0.5;
+                });
+                self.aShape.forEach(function(item,index){
+                    item.x = item.homeX = 200 * index + 100;
+                    item.y = item.homeY = 350;
+
+                    self.stage.addChild(item);                    
+                });
+            },
+            fBindEvent:function(e){
+                var self = this,
+                    shape = e.target,
+                    slot = self.aSlot[shape.key],
+                    stage = self.stage;
+                    self.offsetX = e.stageX - shape.x;
+                    self.offsetY = e.stageY - shape.y;
+                stage.setChildIndex(shape,stage.numChildren - 1);
+                stage.addEventListener('stagemousemove',function(e){
+                    shape.x = e.stageX - self.offsetX;
+                    shape.y = e.stageY - self.offsetY;
+                });
+                stage.addEventListener('stagemouseup',function(e){
+                    stage.removeAllEventListeners('stagemousemove');
+                    stage.removeAllEventListeners('stagemouseup');
+                    //hide check
+                    if(self.fHitTest(slot,stage)){
+                        shape.removeAllEventListeners('mousedown');
+                        self.score++;
+                        //碰撞，移入
+                        createjs.Tween.get(shape).to({
+                            x: slot.x,
+                            y: slot.y
+                        },200,createjs.Ease.quadOut).call(self.fCheckScore.bind(self));
+                    }
+                    else{
+                        //未碰撞，移回
+                        createjs.Tween.get(shape).to({
+                            x:shape.homeX,
+                            y:shape.homeY
+                        },200,createjs.Ease.quadOut).call(self.fCheckScore.bind(self));
+                    }
+                });
+            },
+            fHitTest:function(slot,stage){
+                // var pt = slot.globalToLocal(stage.mouseX,stage.mouseY);
+                // return slot.hitTest(pt.x,pt.y);
+                var shapeLeft = stage.mouseX - this.offsetX,
+                    shapeTop = stage.mouseY - this.offsetY,
+                    aPoint = [
+                        {x:shapeLeft,y:shapeTop},
+                        {x:shapeLeft + 100,y:shapeTop},
+                        {x:shapeLeft,y:shapeTop + 100},
+                        {x:shapeLeft+100,y:shapeTop+100}
+                    ],
+                    bHit = false;
+                aPoint.forEach(function(item){
+                    var pt = slot.globalToLocal(item.x,item.y);
+                    if(slot.hitTest(pt.x,pt.y)){
+                        bHit = true;
+                        return false;
+                    }
+                });
+                return bHit;
+            },
+            fCheckScore:function(){
+                if(this.score == 4){
+                    alert('you win');
+                }
+            }
+        }
+        new DragBox();
+    </script>
+</body>
+</html>
