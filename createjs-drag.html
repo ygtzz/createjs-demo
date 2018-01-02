@@ -29,6 +29,7 @@
                 this.ticker.addEventListener('tick',function(e){
                     self.stage.update();
                 });
+                createjs.Touch.enable(this.stage);
                 //self.stage.enableMouseOver();                
             },
             fRenderShape:function(){
